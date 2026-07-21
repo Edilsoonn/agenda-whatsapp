@@ -2,7 +2,7 @@
 
 Um assistente de agenda que funciona direto pelo WhatsApp: você manda uma mensagem tipo *"reunião com o cliente dia 15/07 às 14h"*, e o sistema entende, salva e te avisa depois. Sem app, sem cadastro, sem nada — só o WhatsApp que você já usa todo dia.
 
-Comecei esse projeto pra sair um pouco do automação "só n8n" que já fazia no trabalho e aprender a integrar tudo isso com IA e infraestrutura de verdade: Docker, banco de dados, API não-oficial de WhatsApp, LLM. Ainda sou iniciante em boa parte disso (principalmente Docker e DevOps), então esse repositório também é um registro de como fui resolvendo os problemas que apareceram no caminho.
+Comecei esse projeto pra sair um pouco do automação "só n8n" que já fazia no trabalho e aprender a integrar tudo isso com IA e infraestrutura de verdade: Docker, banco de dados, API não-oficial de WhatsApp, LLM. Ainda sou iniciante em boa parte disso, então esse repositório também é um registro de como fui resolvendo os problemas que apareceram no caminho.
 
 ---
 
