@@ -1,0 +1,1001 @@
+{
+  "name": "Agenda",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agenda",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1216,
+        -368
+      ],
+      "id": "7338f9f6-93d4-4a56-97e4-589a470f9c5f",
+      "name": "Webhook",
+      "webhookId": "dc140350-d9c5-41ed-bb2a-02cd3e4d0626"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9302cfd2-005a-4097-98ac-bc6ee5b7494f",
+              "leftValue": "={{ $json.body.data.key.fromMe }}  is true",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e9355804-c5e5-403a-aa0a-4efe12954d98",
+              "leftValue": "={{ $json.body.data.key.remoteJid }}",
+              "rightValue": "120363430126383765@g.us",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "95a1e16e-9544-4ab8-942d-59743f49c7fa",
+              "leftValue": "={{ $json.body.data.message.conversation }}",
+              "rightValue": " 🤖",
+              "operator": {
+                "type": "string",
+                "operation": "notStartsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        -368
+      ],
+      "id": "da8104af-43f9-401b-90f0-c98aeab0a3f6",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hoje é {{ $now.format('dd/MM/yyyy') }} ({{ $now.format('cccc') }}). Mensagem do usuário: {{ $json.body.data.message.conversation }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "IMPORTANTE: Você deve SEMPRE responder apenas com o objeto JSON no formato especificado, nunca em texto livre — mesmo que a mensagem seja uma saudação, pergunta genérica, ou não pareça um compromisso.\n\nSe a mensagem não for sobre agendar/listar/cancelar/editar um compromisso (ex: \"oi\", \"bom dia\", perguntas genéricas), retorne tipo_acao como \"outro\" e explique no campo pergunta que você é um assistente de agenda e pode ajudar a marcar compromissos.\n\nA data de hoje será informada no início da mensagem do usuário. Use-a como referência para calcular datas relativas (amanhã, sexta-feira, semana que vem, etc.) e sempre no ano correto.\n\nSe o usuário mencionar um número pra cancelar ou editar (ex: \"cancelar 3\", \"editar o compromisso 5\"), extraia esse número no campo id_compromisso.\nSe for uma nova mensagem (novo_compromisso) ou listar, deixe id_compromisso como string vazia.\n\nSe o usuário quiser editar um compromisso (ex: \"editar 3 para 16h\", \"muda o compromisso 5 para dia 20/07\"), extraia:\n- id_compromisso: o número mencionado\n- os campos que ele quer alterar (titulo, data, hora, categoria) — preenchidos com o NOVO valor\n- campos que ele NÃO mencionou para alterar devem vir como string vazia"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -640,
+        -384
+      ],
+      "id": "118457d6-5a54-4d22-956a-c04f84542dac",
+      "name": "AI Agent",
+      "notes": "System Message do AI Agent"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"titulo\": { \"type\": \"string\", \"description\": \"Título do compromisso\" },\n    \"data\": { \"type\": \"string\", \"description\": \"Data no formato YYYY-MM-DD\" },\n    \"hora\": { \"type\": \"string\", \"description\": \"Hora no formato HH:MM, ou string vazia se não informada\" },\n    \"categoria\": {\n      \"type\": \"string\",\n      \"enum\": [\"trabalho\", \"saude\", \"pessoal\", \"financeiro\", \"outro\"]\n    },\n    \"tipo_acao\": {\n      \"type\": \"string\",\n      \"enum\": [\"novo_compromisso\", \"listar\", \"cancelar\", \"editar\", \"outro\"]\n    },\n    \"id_compromisso\": { \"type\": \"string\", \"description\": \"Número do ID mencionado pelo usuário para cancelar/editar, ou string vazia se não houver\" },\n    \"precisa_confirmar\": { \"type\": \"boolean\" },\n    \"pergunta\": { \"type\": \"string\", \"description\": \"Pergunta ao usuário, ou string vazia se não precisar\" }\n  },\n  \"required\": [\"titulo\", \"data\", \"hora\", \"categoria\", \"tipo_acao\", \"id_compromisso\", \"precisa_confirmar\", \"pergunta\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        -80
+      ],
+      "id": "8c28b5da-5b03-4002-bf8b-f4c6a5440a33",
+      "name": "Structured Output Parser",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        -112
+      ],
+      "id": "91978573-fb28-46ca-a8de-82a0fb769a09",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.tipo_acao }}",
+                    "rightValue": "novo_compromisso",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f80702b7-3139-46c8-bcb0-130d6fb47729"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7d6cc692-f2c2-4177-8252-89e6cbf9b9ca",
+                    "leftValue": "={{ $json.output.tipo_acao }}",
+                    "rightValue": "listar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "835f4021-e056-4587-9e41-37ed199ee0c4",
+                    "leftValue": "={{ $json.output.tipo_acao }}",
+                    "rightValue": "outro",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ae488879-d0dd-4793-87dc-8bfca7ed2127",
+                    "leftValue": "={{ $json.output.tipo_acao }}",
+                    "rightValue": "editar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "02c5695f-d873-47d3-aa9c-3f318a22e88f",
+                    "leftValue": "={{ $json.output.tipo_acao }}",
+                    "rightValue": "cancelar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        -432
+      ],
+      "id": "5e85394b-8e85-4331-85e5-3c5811c61f4f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nif (items.length === 0) {\n  return [{ json: { mensagem: \"Você não tem compromissos pendentes! 🎉\" } }];\n}\n\nlet texto = \"📋 Seus compromissos pendentes:\\n\\n\";\n\nfor (const item of items) {\n  const c = item.json;\n  texto += `${c.id}. ${c.titulo}\\n📅 ${c.data} ${c.hora ? 'às ' + c.hora : ''}\\n🏷️ ${c.categoria}\\n\\n`;\n}\n\nreturn [{ json: { mensagem: texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -544
+      ],
+      "id": "4b7f39ec-0379-4882-9b04-2969032fe579",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Connect-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=number",
+              "value": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output.pergunta }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        64,
+        -384
+      ],
+      "id": "d5f0c290-c423-4055-a71a-8cea440ea677",
+      "name": "Dialogo",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}\",\n  \"text\": \"✅ Agendado! *{{ $('AI Agent').item.json.output.titulo }}*\\n📅 {{ $('AI Agent').item.json.output.data.split('-').reverse().join('/') }} às {{ $('AI Agent').item.json.output.hora }}\\n🏷️ {{ $('AI Agent').item.json.output.categoria }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        -720
+      ],
+      "id": "ab98ab28-f9d0-4fa4-b873-f0fda961f31f",
+      "name": "Responder Novo Compromisso",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.mensagem }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        -544
+      ],
+      "id": "73366baf-c7f6-417e-9029-578a817ec58e",
+      "name": "Responder Listagem",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.titulo ? '❌ Cancelado: ' + $json.titulo + ' (' + $json.data + ')' : 'Não encontrei esse compromisso. Confere o número com \"listar\".' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        -48
+      ],
+      "id": "2bad4745-aa93-43ea-abee-02fa69b79f4d",
+      "name": "Responder Cancelamento",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '') }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.titulo ? '✏️ Atualizado: ' + $json.titulo + ' - ' + $json.data + ' às ' + $json.hora : 'Não encontrei esse compromisso.' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        -224
+      ],
+      "id": "091e513b-8802-4a1e-b584-a4fa2921cde8",
+      "name": "Responder Edição",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -384
+      ],
+      "id": "054d477c-b7a9-4986-afca-3d137e391792",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "compromissos",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lembrete_enviado": false,
+            "titulo": "={{ $json.output.titulo }}",
+            "data": "={{ $json.output.data }}",
+            "hora": "={{ $json.output.hora }}",
+            "categoria": "={{ $json.output.categoria }}",
+            "remetente": "={{ $('Webhook').item.json.body.data.key.remoteJid }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "titulo",
+              "displayName": "titulo",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "data",
+              "displayName": "data",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "hora",
+              "displayName": "hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "time",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "remetente",
+              "displayName": "remetente",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lembrete_enviado",
+              "displayName": "lembrete_enviado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "criado_em",
+              "displayName": "criado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        -720
+      ],
+      "id": "bd02253e-730e-40a9-a701-495fcfe34c8c",
+      "name": "Inserir Compromisso",
+      "credentials": {
+        "postgres": {
+          "id": "eYSPRSm9APkBFSfE",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, titulo, TO_CHAR(data, 'DD/MM/YYYY') as data, TO_CHAR(hora, 'HH24:MI') as hora, categoria\nFROM compromissos\nWHERE remetente = $1\nAND status = 'pendente'\nORDER BY data, hora;",
+        "options": {
+          "queryReplacement": "={{ $('Webhook').item.json.body.data.key.remoteJid }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        -544
+      ],
+      "id": "18f780a8-c122-45d8-8be9-057c98a3d9aa",
+      "name": "Listar Compromissos",
+      "credentials": {
+        "postgres": {
+          "id": "eYSPRSm9APkBFSfE",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE compromissos \nSET \n  titulo = COALESCE(NULLIF($1, ''), titulo),\n  data = COALESCE(NULLIF($2, '')::date, data),\n  hora = COALESCE(NULLIF($3, '')::time, hora),\n  categoria = COALESCE(NULLIF($4, ''), categoria)\nWHERE id = $5\nAND remetente = $6\nRETURNING titulo, TO_CHAR(data, 'DD/MM/YYYY') as data, TO_CHAR(hora, 'HH24:MI') as hora;",
+        "options": {
+          "queryReplacement": "={{ $json.output.titulo }}, {{ $json.output.data }}, {{ $json.output.hora }}, {{ $json.output.categoria }}, {{ $json.output.id_compromisso }}, {{ $('Webhook').item.json.body.data.key.remoteJid }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        -224
+      ],
+      "id": "0a17c978-636a-4e5f-8696-2b3ee165c355",
+      "name": "Editar Compromissos",
+      "credentials": {
+        "postgres": {
+          "id": "eYSPRSm9APkBFSfE",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE compromissos \nSET status = 'cancelado' \nWHERE id = $1\nAND remetente = $2\nRETURNING titulo, TO_CHAR(data, 'DD/MM/YYYY') as data, TO_CHAR(hora, 'HH24:MI') as hora;",
+        "options": {
+          "queryReplacement": "={{ $json.output.id_compromisso }}, {{ $('Webhook').item.json.body.data.key.remoteJid }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        64,
+        -48
+      ],
+      "id": "8103487f-83b1-4311-af4b-519ebd5adb33",
+      "name": "Cancelar Compromisso",
+      "credentials": {
+        "postgres": {
+          "id": "eYSPRSm9APkBFSfE",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=number",
+              "value": "={{ ['5511974524409@s.whatsapp.net', '120363430126383765@g.us'].includes($('Webhook').item.json.body.data.key.remoteJid) ? $('Webhook').item.json.body.data.key.remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '') : '' }}"
+            },
+            {
+              "name": "text",
+              "value": "😅 Não consegui entender direito essa mensagem. Pode tentar reformular? Você pode agendar, listar, cancelar ou editar compromissos."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -496,
+        112
+      ],
+      "id": "fa1efda7-ba9b-4dff-a0c3-5be9916d0f10",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -96
+      ],
+      "id": "d2f90340-7f6d-4ce3-a71d-4096c92aa2d7",
+      "name": "Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DL6svaxfYUDRyZ7B",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ],
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Inserir Compromisso",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Listar Compromissos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dialogo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Editar Compromissos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancelar Compromisso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Responder Listagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder Listagem": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder Novo Compromisso": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder Cancelamento": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder Edição": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dialogo": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inserir Compromisso": {
+      "main": [
+        [
+          {
+            "node": "Responder Novo Compromisso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar Compromissos": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editar Compromissos": {
+      "main": [
+        [
+          {
+            "node": "Responder Edição",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelar Compromisso": {
+      "main": [
+        [
+          {
+            "node": "Responder Cancelamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c3284367-5912-4a8c-8df7-63350fed5a2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dba8134e38d084aec0e239e2a73c9fa1996814f4bd9e07a4db79affbce60baa2"
+  },
+  "id": "nAvTK1nBpPHNf5sk",
+  "tags": []
+}

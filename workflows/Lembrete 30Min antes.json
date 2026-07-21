@@ -1,0 +1,182 @@
+{
+  "name": "Lembrete 30Min antes",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        -32
+      ],
+      "id": "c4cf47d3-4b19-4aa2-9a26-f645eb75f6d6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, titulo, TO_CHAR(data, 'YYYY-MM-DD') as data, TO_CHAR(hora, 'HH24:MI') as hora, remetente\nFROM compromissos \nWHERE status = 'pendente' \nAND aviso_30min_enviado = false\nAND (data + hora)::timestamp BETWEEN NOW() AND NOW() + INTERVAL '15 minutes';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -272,
+        -32
+      ],
+      "id": "46d6558e-45f4-4058-855b-1666a050e0b8",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "eYSPRSm9APkBFSfE",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -16,
+        -32
+      ],
+      "id": "e2967426-137e-4ab5-be02-75c4eeadbe2b",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution-api:8080/message/sendText/agenda-bot",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"number\": \"{{ $json.remetente.replace('@s.whatsapp.net', '') }}\",\n  \"text\": \"⏰ Faltam 30 minutos! *{{ $json.titulo }}* às {{ $json.hora }}\\n🏷️ {{ $json.categoria }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        -192
+      ],
+      "id": "2cb9ec37-af99-452d-b30d-e19ce297159e",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "v2Jv9KrdiknRNgyU",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE compromissos SET aviso_30min_enviado = true WHERE id = {{ $json.id }};",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        272,
+        0
+      ],
+      "id": "41f15272-6800-4ae1-9db0-51e6267e3b26",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "eYSPRSm9APkBFSfE",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ada957d8-fe6c-445c-8dff-285f5f5a4a87",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dba8134e38d084aec0e239e2a73c9fa1996814f4bd9e07a4db79affbce60baa2"
+  },
+  "id": "Ce0T9ISh1f94Gnbc",
+  "tags": []
+}
